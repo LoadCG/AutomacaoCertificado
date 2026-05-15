@@ -201,7 +201,7 @@ Contribuições são o que fazem a comunidade open source um lugar incrível par
 
 Este projeto está licenciado sob a **Licença MIT**. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
-**Desenvolvido por:** [Cauan Gabriel](https://github.com/cauangabriel)
+**Desenvolvido por:** [Cauan Gabriel](https://github.com/LoadCG)
 **Ícones e Design:** Equipe de Treinamentos / Antigravity Design System.
 
 ---

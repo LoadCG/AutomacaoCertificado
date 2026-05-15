@@ -18,4 +18,4 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-br/1.0.
 
 ---
 
-[1.0.0]: https://github.com/cauangabriel/AutomacaoCertificado/releases/tag/v1.0.0
+[1.0.0]: https://github.com/LoadCG/AutomacaoCertificado/releases/tag/v1.0.0
