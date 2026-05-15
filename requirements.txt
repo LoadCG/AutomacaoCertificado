@@ -1,0 +1,13 @@
+# Gerador de Certificados — Dependências de runtime
+# Python 3.11.x requerido (mínimo 3.9+)
+# Instalar: pip install -r requirements.txt
+
+customtkinter==5.2.2
+python-pptx==1.0.2
+pandas==2.2.2
+openpyxl==3.1.3
+xlrd==2.0.1
+Pillow==10.3.0
+pywin32==306; sys_platform == "win32"
+typing_extensions==4.11.0
+tkinterdnd2-universal==1.7.3
