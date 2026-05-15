@@ -12,7 +12,7 @@ from pptx.util import Inches, Pt
 from app.core.certificate_engine import (
     _normalizar_runs_paragrafo,
     _resolver_valores,
-    _gerar_nome_por_padrao,
+    formatar_nome_arquivo,
     _substituir_run,
     gerar_lote,
     PADRAO_NOME_PADRAO,
@@ -140,37 +140,37 @@ class TestNormalizarRuns:
 
 class TestGerarNomePorPadrao:
     def test_padrao_padrao_contem_nome(self):
-        resultado = _gerar_nome_por_padrao(
+        resultado = formatar_nome_arquivo(
             PADRAO_NOME_PADRAO, {"{{NOME}}": "Alice Silva"}, 1
         )
-        assert "Alice Silva" in resultado
+        assert "Alice-Silva" in resultado
 
     def test_padrao_padrao_contem_data(self):
         from datetime import date
-        resultado = _gerar_nome_por_padrao(
+        resultado = formatar_nome_arquivo(
             PADRAO_NOME_PADRAO, {"{{NOME}}": "Alice"}, 1
         )
         assert date.today().strftime("%Y-%m-%d") in resultado
 
     def test_padrao_customizado(self):
-        resultado = _gerar_nome_por_padrao(
+        resultado = formatar_nome_arquivo(
             "Cert_{{NOME}}_{INDICE}", {"{{NOME}}": "Bob"}, 7
         )
-        assert "Cert_Bob" in resultado
+        assert "Cert-Bob" in resultado
         assert "0007" in resultado
 
     def test_sanitiza_barra_no_valor(self):
-        resultado = _gerar_nome_por_padrao(
+        resultado = formatar_nome_arquivo(
             "{{NOME}}", {"{{NOME}}": "Alice/Santos"}, 1
         )
         assert "/" not in resultado
 
     def test_fallback_padrao_vazio(self):
-        resultado = _gerar_nome_por_padrao("", {}, 42)
+        resultado = formatar_nome_arquivo("", {}, 42)
         assert "42" in resultado
 
     def test_variaveis_nao_mapeadas_removidas(self):
-        resultado = _gerar_nome_por_padrao(
+        resultado = formatar_nome_arquivo(
             "{{NOME}} - {{CARGO}} - {DATA}",
             {"{{NOME}}": "Alice"},  # {{CARGO}} não mapeado
             1,
