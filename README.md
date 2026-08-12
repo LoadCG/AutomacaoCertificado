@@ -37,15 +37,18 @@ O **Gerador de Certificados** é uma solução desktop de alto desempenho projet
 Este aplicativo nasceu da necessidade de simplificar o fluxo de trabalho de equipes de treinamento e eventos. Ao contrário de soluções baseadas em "mala direta" tradicionais, o sistema oferece controle total sobre a formatação original do template, exportação nativa para PDF e um sistema inteligente de mapeamento de dados.
 
 ### Propósito
-Automatizar o preenchimento de variáveis em arquivos `.pptx` (PowerPoint) utilizando dados provenientes de planilhas Excel ou CSV, mantendo a integridade visual e facilitando a gestão de grandes volumes de participantes.
+Automatizar o preenchimento de variáveis em templates `.pptx` (PowerPoint) ou `.docx` (Word) utilizando dados provenientes de planilhas `.xlsx`, `.ods` ou `.csv`, mantendo a integridade visual e facilitando a gestão de grandes volumes de participantes.
 
 ### Principais Funcionalidades
 - **Mapeamento Fuzzy Inteligente:** Identifica automaticamente quais colunas da planilha correspondem às variáveis do template (ex: `{{NOME}}` → `Nome do Aluno`).
 - **Drag & Drop Nativo:** Arraste templates e planilhas diretamente para a interface.
+- **Gestão da Tabela de Dados:** Busque, ordene por coluna e ative/desative linhas individualmente (ou em massa) para excluí-las da geração sem precisar editar a planilha original.
 - **Processamento em Segundo Plano:** Geração multithread que não trava a interface do usuário.
+- **Relatório de Erros:** Falhas individuais durante o lote geram um CSV detalhado, acessível direto pela interface.
 - **Preview em Tempo Real:** Visualize como os nomes dos arquivos serão gerados antes de iniciar o processo.
-- **Suporte a Temas:** Alternância entre Modo Escuro (Deep Midnight) e Modo Claro.
-- **Exportação Dupla:** Gere arquivos editáveis `.pptx` e versões finais em `.pdf` simultaneamente.
+- **Atalhos de Teclado:** `Ctrl+O`/`Ctrl+Shift+O` para abrir arquivos, `Enter` para gerar, `Esc` para voltar.
+- **Suporte a Temas:** Alternância entre Modo Escuro e Modo Claro.
+- **Exportação Dupla:** Gere arquivos editáveis (`.pptx`/`.docx`) e versões finais em `.pdf` simultaneamente.
 - **Persistência de Sessão:** O aplicativo lembra suas últimas seleções e configurações.
 
 ---
@@ -68,7 +71,7 @@ O projeto utiliza o que há de mais moderno no ecossistema Python para aplicaç�
 ### Requisitos Mínimos
 - **Sistema Operacional:** Windows 10 ou 11 (recomendado para exportação PDF).
 - **Python:** Versão 3.9 ou superior (3.11 recomendada).
-- **Software Adicional:** Microsoft PowerPoint instalado (necessário apenas para a funcionalidade de exportação em PDF).
+- **Software Adicional:** Microsoft PowerPoint **ou** LibreOffice instalado (necessário apenas para a funcionalidade de exportação em PDF — o app tenta PowerPoint primeiro e cai para LibreOffice automaticamente se não encontrá-lo).
 
 ### Compatibilidade
 | Recurso | Windows | Linux/macOS |
@@ -134,14 +137,17 @@ python main.py
 ```
 
 ### Fluxo Operacional
-1. **Selecionar Template:** Escolha um arquivo `.pptx` que contenha variáveis no formato `{{NOME_DA_VARIAVEL}}`.
-2. **Carregar Dados:** Selecione a planilha (`.xlsx` ou `.csv`) com os dados dos participantes.
-3. **Mapear Variáveis:** O app tentará associar as colunas automaticamente. Caso necessário, ajuste manualmente nos seletores.
-4. **Configurar Saída:** Escolha a pasta de destino e defina o padrão de nomenclatura (ex: `Certificado - {{NOME}}`).
-5. **Gerar:** Clique no botão de destaque e acompanhe o progresso no console em tempo real.
+1. **Selecionar Template:** Arraste (ou clique para procurar) um arquivo `.pptx`/`.docx` que contenha variáveis no formato `{{NOME_DA_VARIAVEL}}`.
+2. **Carregar Dados:** Faça o mesmo com a planilha (`.xlsx`, `.xls`, `.ods` ou `.csv`) dos participantes.
+3. **Mapear Variáveis:** O app associa as colunas automaticamente por similaridade de nome. Ajuste manualmente onde necessário, ou use o modo "Texto" para um valor fixo (igual em todos os certificados).
+4. **Revisar os Dados (opcional):** Clique em **"Ver Tabela Completa"** para buscar, ordenar e desativar participantes específicos que não devem receber certificado — sem editar a planilha original.
+5. **Configurar Saída:** Escolha a pasta de destino e o padrão de nomenclatura dos arquivos (ex: `Certificado - {{NOME}}`).
+6. **Gerar:** Clique no botão de destaque e acompanhe o progresso pela barra e pelo log. Se algum participante falhar, os demais continuam normalmente e um relatório de erros em CSV fica disponível ao final.
 
 > [!TIP]
-> Utilize o **Guia de Templates** localizado em `docs/GUIA_TEMPLATE.md` para aprender a criar modelos perfeitos.
+> O app tem um tutorial embutido — clique no ícone **"?"** no canto superior direito a qualquer momento para rever o passo a passo com exemplos visuais de cada etapa. Também há tooltips explicativos ao passar o mouse sobre a maioria dos botões e campos.
+>
+> Para criar modelos `.pptx`/`.docx` corretamente, consulte o **[Guia de Templates](docs/GUIA_TEMPLATE.md)**.
 
 ---
 
@@ -203,6 +209,7 @@ Este projeto está licenciado sob a **Licença MIT**. Veja o arquivo [LICENSE](L
 
 **Desenvolvido por:** [Cauan Gabriel](https://github.com/LoadCG)
 **Ícones e Design:** Equipe de Treinamentos / Antigravity Design System.
+**Tipografia:** [Montserrat](https://github.com/JulietaUla/Montserrat), licenciada sob a [SIL Open Font License 1.1](assets/fonts/OFL.txt).
 
 ---
 

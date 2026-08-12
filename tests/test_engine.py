@@ -271,3 +271,78 @@ class TestGerarLote:
         )
         mtime_depois = os.path.getmtime(template_simples)
         assert mtime_antes == mtime_depois
+
+    def test_gerar_lote_docx(self, template_docx_simples: Path, df_simples, tmp_path: Path):
+        """Garante que a geração em lote funciona para templates .docx."""
+        from docx import Document
+        
+        fila: Queue[EventoGerador] = Queue()
+        gerar_lote(
+            template_docx_simples,
+            df_simples,
+            {"{{NOME}}": "Nome", "{{RG}}": "RG"},
+            tmp_path,
+            fila,
+            exportar_pdf=False,
+            padrao_nome="{{NOME}} - Test"
+        )
+        
+        # Deve ter gerado 3 arquivos docx
+        arquivos = [f for f in tmp_path.glob("*.docx") if f.name != "template_test.docx"]
+        assert len(arquivos) == 3
+        
+        # Verifica conteúdo de um deles
+        nome_gerado = df_simples.iloc[0]["Nome"]
+        arq_alice = tmp_path / f"Alice-Silva-Test.docx"
+        assert arq_alice.exists()
+        
+        doc = Document(str(arq_alice))
+        textos = [p.text for p in doc.paragraphs]
+        assert f"Certificado para {nome_gerado}" in textos
+
+
+class TestPDFFallback:
+    def test_obter_caminho_libreoffice(self):
+        from app.core.certificate_engine import obter_caminho_libreoffice
+        caminho = obter_caminho_libreoffice()
+        # No ambiente de testes, pode ou não estar instalado, mas se retornar deve ser Path
+        if caminho is not None:
+            assert isinstance(caminho, Path)
+            assert caminho.exists()
+
+    def test_pdf_disponivel(self):
+        from app.core.certificate_engine import pdf_disponivel, com_disponivel, obter_caminho_libreoffice
+        has_com = com_disponivel()
+        has_lo = obter_caminho_libreoffice() is not None
+        assert pdf_disponivel() == (has_com or has_lo)
+
+    def test_exportar_pdf_libreoffice_chamada(self, tmp_path: Path, monkeypatch):
+        import subprocess
+        from app.core.certificate_engine import _exportar_pdf_libreoffice
+
+        comando_executado = []
+        def mock_run(cmd, *args, **kwargs):
+            comando_executado.append(cmd)
+            # Cria o arquivo PDF esperado
+            pdf_path = tmp_path / "test.pdf"
+            pdf_path.touch()
+            
+            class MockCompletedProcess:
+                returncode = 0
+                stdout = "convert"
+                stderr = ""
+            return MockCompletedProcess()
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        caminho_lo = Path("soffice")
+        caminho_pptx = tmp_path / "test.pptx"
+        caminho_pptx.touch()
+        caminho_pdf = tmp_path / "test.pdf"
+
+        _exportar_pdf_libreoffice(caminho_lo, caminho_pptx, tmp_path, caminho_pdf)
+        assert len(comando_executado) == 1
+        assert "soffice" in comando_executado[0][0]
+        assert "--convert-to" in comando_executado[0]
+        assert caminho_pdf.exists()
+

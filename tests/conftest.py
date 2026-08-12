@@ -101,3 +101,15 @@ def xlsx_simples(tmp_path: Path) -> Path:
     caminho = tmp_path / "dados.xlsx"
     df.to_excel(caminho, index=False)
     return caminho
+
+
+@pytest.fixture
+def template_docx_simples(tmp_path: Path) -> Path:
+    """Template .docx com variáveis {{NOME}} e {{RG}}."""
+    from docx import Document
+    doc = Document()
+    doc.add_paragraph("Certificado para {{NOME}}")
+    doc.add_paragraph("Portador do RG: {{RG}}")
+    caminho = tmp_path / "template_test.docx"
+    doc.save(str(caminho))
+    return caminho

@@ -63,6 +63,12 @@ class TestExtrairVariaveis:
         variaveis = extrair_variaveis(caminho)
         assert "{{nome}}" not in variaveis
 
+    def test_extrair_variaveis_docx(self, template_docx_simples: Path):
+        variaveis = extrair_variaveis(template_docx_simples)
+        assert "{{NOME}}" in variaveis
+        assert "{{RG}}" in variaveis
+        assert len(variaveis) == 2
+
 
 class TestReconstruirTextoParagrafo:
     def test_paragrafo_run_unico(self, template_simples: Path):
