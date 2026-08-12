@@ -72,24 +72,46 @@ def extrair_variaveis(caminho_template: Path) -> list[str]:
 
     log.info("Extraindo variáveis do template: %s", caminho_template)
 
-    prs = Presentation(str(caminho_template))
+    ext = caminho_template.suffix.lower()
     variaveis_encontradas: set[str] = set()
 
-    for num_slide, slide in enumerate(prs.slides, start=1):
-        for shape in _iterar_shapes(slide):
-            if not shape.has_text_frame:
-                continue
-            for paragrafo in shape.text_frame.paragraphs:
-                texto_reconstruido = reconstruir_texto_paragrafo(paragrafo)
-                ocorrencias = PADRAO_VARIAVEL.findall(texto_reconstruido)
-                if ocorrencias:
-                    log.debug(
-                        "Slide %d — shape '%s': variáveis=%s",
-                        num_slide,
-                        shape.name,
-                        ocorrencias,
-                    )
-                    variaveis_encontradas.update(ocorrencias)
+    if ext == ".pptx":
+        prs = Presentation(str(caminho_template))
+        for num_slide, slide in enumerate(prs.slides, start=1):
+            for shape in _iterar_shapes(slide):
+                if not shape.has_text_frame:
+                    continue
+                for paragrafo in shape.text_frame.paragraphs:
+                    texto_reconstruido = reconstruir_texto_paragrafo(paragrafo)
+                    ocorrencias = PADRAO_VARIAVEL.findall(texto_reconstruido)
+                    if ocorrencias:
+                        log.debug(
+                            "Slide %d — shape '%s': variáveis=%s",
+                            num_slide,
+                            shape.name,
+                            ocorrencias,
+                        )
+                        variaveis_encontradas.update(ocorrencias)
+    elif ext == ".docx":
+        from docx import Document
+        doc = Document(str(caminho_template))
+        
+        # 1. Parágrafos normais
+        for paragrafo in doc.paragraphs:
+            ocorrencias = PADRAO_VARIAVEL.findall(paragrafo.text)
+            if ocorrencias:
+                variaveis_encontradas.update(ocorrencias)
+                
+        # 2. Tabelas
+        for tabela in doc.tables:
+            for linha in tabela.rows:
+                for celula in linha.cells:
+                    for paragrafo in celula.paragraphs:
+                        ocorrencias = PADRAO_VARIAVEL.findall(paragrafo.text)
+                        if ocorrencias:
+                            variaveis_encontradas.update(ocorrencias)
+    else:
+        raise ValueError(f"Formato de template não suportado: '{ext}'")
 
     variaveis_ordenadas = sorted(variaveis_encontradas)
     log.info(

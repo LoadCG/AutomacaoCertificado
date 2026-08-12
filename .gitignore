@@ -31,6 +31,8 @@ MANIFEST
 #  after executables are built.
 *.manifest
 *.spec
+# build.spec é mantido manualmente e versionado — necessário para reproduzir o build
+!build.spec
 
 # Installer logs
 pip-log.txt
@@ -169,3 +171,4 @@ out/
 dist/
 build/
 *.exe
+scripts/.cache/

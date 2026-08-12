@@ -6,7 +6,7 @@
 
 ## O que é um template?
 
-O template é o arquivo PowerPoint (`.pptx`) que serve de modelo para todos os certificados. Ele contém o visual completo — cores, fontes, logos, layout — e **marcadores especiais** nos lugares onde os dados de cada participante serão inseridos automaticamente.
+O template é o arquivo PowerPoint (`.pptx`) ou Word (`.docx`) que serve de modelo para todos os certificados. Ele contém o visual completo — cores, fontes, logos, layout — e **marcadores especiais** nos lugares onde os dados de cada participante serão inseridos automaticamente. Este guia usa o PowerPoint como exemplo, mas as mesmas regras de variável valem para o Word.
 
 ---
 
@@ -50,7 +50,7 @@ As variáveis são textos no formato `{{NOME_DA_VARIAVEL}}` inseridos diretament
 
 ## Como preparar a planilha
 
-A planilha (`.xlsx` ou `.csv`) deve ter:
+A planilha (`.xlsx`, `.xls`, `.ods` ou `.csv`) deve ter:
 - **Primeira linha**: nomes das colunas (cabeçalho)
 - **Demais linhas**: um participante por linha
 
@@ -59,6 +59,14 @@ A planilha (`.xlsx` ou `.csv`) deve ter:
 O aplicativo permite mapear cada variável do template para qualquer coluna da planilha — você não precisa nomear as colunas igual às variáveis. O app exibe um dropdown para cada variável onde você escolhe qual coluna corresponde.
 
 **Dica:** Se o nome da coluna for igual ao nome da variável (sem chaves), o mapeamento é feito automaticamente. Exemplo: coluna `NOME` mapeia automaticamente para `{{NOME}}`.
+
+### Valor fixo em vez de coluna ("Texto")
+
+Ao lado de cada variável no painel de mapeamento existe um seletor **Planilha / Texto**. Use "Texto" quando o valor deve ser **igual em todos os certificados** — por exemplo, `{{TREINAMENTO}}` sempre igual a "Excelência no Atendimento", sem precisar repetir esse valor em toda linha da planilha.
+
+### Gerando certificado só para alguns participantes
+
+Depois de carregar a planilha, clique em **"Ver Tabela Completa"** dentro do app. Cada linha tem uma caixinha de seleção — desmarque a de um participante para que ele **não** receba certificado neste lote, sem precisar apagar a linha da planilha original. Há também botões para buscar por nome e ativar/desativar vários participantes de uma vez.
 
 ---
 
@@ -104,6 +112,9 @@ O log mostra o motivo do erro. Os demais certificados são gerados normalmente �
 **Quero usar o mesmo template para treinamentos diferentes.**
 Basta selecionar uma planilha diferente no aplicativo. O mapeamento variável ↔ coluna é refeito automaticamente.
 
+**Esqueci como algum passo funciona dentro do app.**
+Clique no ícone **"?"** no canto superior direito do aplicativo — ele abre um tutorial com exemplos visuais de cada etapa. A maioria dos botões e campos também mostra uma dica ao passar o mouse por cima.
+
 ---
 
-*Documento mantido pela equipe de Treinamentos — v1.0.0*
+*Documento mantido pela equipe de Treinamentos — v1.1.0*

@@ -25,10 +25,13 @@ Uso:
     )
 """
 
+import csv
 import re
+import shutil
+import subprocess
 import sys
 import unicodedata
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from queue import Queue
 from typing import Optional
@@ -114,6 +117,11 @@ def gerar_lote(
         - Erros individuais são logados e pulados — o lote continua.
         - Nomes de arquivo são sanitizados para remover caracteres inválidos em paths.
     """
+    template = Path(template)
+    ext_template = template.suffix.lower()
+    if ext_template not in (".pptx", ".docx"):
+        raise ValueError(f"Formato de template não suportado: {ext_template}")
+
     pasta_saida = Path(pasta_saida)
     pasta_saida.mkdir(parents=True, exist_ok=True)
 
@@ -136,37 +144,74 @@ def gerar_lote(
         nome_base = formatar_nome_arquivo(padrao_nome, mapeamento_valores, indice)
         
         # 2. Garante unicidade: evita que arquivos com mesmo nome se sobrescrevam
-        ext_pptx = ".pptx"
-        caminho_pptx = pasta_saida / f"{nome_base}{ext_pptx}"
+        caminho_gerado = pasta_saida / f"{nome_base}{ext_template}"
         
         contador_conflito = 1
-        while caminho_pptx.exists():
-            caminho_pptx = pasta_saida / f"{nome_base}-({contador_conflito}){ext_pptx}"
+        while caminho_gerado.exists():
+            caminho_gerado = pasta_saida / f"{nome_base}-({contador_conflito}){ext_template}"
             contador_conflito += 1
 
-        nome_final_sanitizado = caminho_pptx.stem
+        nome_final_sanitizado = caminho_gerado.stem
 
         try:
-            # Reabre o template do disco — NUNCA deepcopy (python-pptx usa ZIP interno)
-            prs = Presentation(str(template))
+            if ext_template == ".pptx":
+                # Reabre o template do disco — NUNCA deepcopy (python-pptx usa ZIP interno)
+                prs = Presentation(str(template))
+                for slide in prs.slides:
+                    _processar_slide(slide, mapeamento_valores)
+                prs.save(str(caminho_gerado))
+                log.debug("Certificado PPTX salvo: %s", caminho_gerado)
+            else:
+                from docx import Document
+                doc = Document(str(template))
+                _processar_docx(doc, mapeamento_valores)
+                doc.save(str(caminho_gerado))
+                log.debug("Certificado DOCX salvo: %s", caminho_gerado)
 
-            for slide in prs.slides:
-                _processar_slide(slide, mapeamento_valores)
-
-            prs.save(str(caminho_pptx))
-            log.debug("Certificado salvo: %s", caminho_pptx)
-
-            if exportar_pdf and _COM_DISPONIVEL:
+            if exportar_pdf:
                 caminho_pdf = pasta_saida / f"{nome_final_sanitizado}.pdf"
-                try:
-                    _exportar_pdf_com(caminho_pptx, caminho_pdf)
-                    log.debug("PDF exportado: %s", caminho_pdf)
-                except ExportacaoPDFError as e_pdf:
-                    # Falha no PDF não cancela o .pptx já salvo
-                    log.warning("Falha ao exportar PDF '%s': %s", nome_final_sanitizado, e_pdf)
+                sucesso_pdf = False
+
+                # 1. Tenta exportar via COM (PowerPoint) se disponível (apenas para PPTX)
+                if ext_template == ".pptx" and _COM_DISPONIVEL:
+                    try:
+                        _exportar_pdf_com(caminho_gerado, caminho_pdf)
+                        log.debug("PDF exportado via PowerPoint COM: %s", caminho_pdf)
+                        sucesso_pdf = True
+                    except Exception as e_pdf:
+                        log.warning(
+                            "Falha ao exportar PDF via PowerPoint COM para '%s': %s. Tentando LibreOffice...",
+                            nome_final_sanitizado,
+                            e_pdf,
+                        )
+
+                # 2. Se falhar ou se for DOCX, tenta exportar via LibreOffice
+                if not sucesso_pdf:
+                    caminho_libreoffice = obter_caminho_libreoffice()
+                    if caminho_libreoffice:
+                        try:
+                            _exportar_pdf_libreoffice(
+                                caminho_libreoffice,
+                                caminho_gerado,
+                                pasta_saida,
+                                caminho_pdf,
+                            )
+                            log.debug("PDF exportado via LibreOffice: %s", caminho_pdf)
+                            sucesso_pdf = True
+                        except Exception as e_lo:
+                            log.warning(
+                                "Falha ao exportar PDF via LibreOffice para '%s': %s",
+                                nome_final_sanitizado,
+                                e_lo,
+                            )
+                    else:
+                        log.warning(
+                            "Falha ao exportar PDF para '%s': PowerPoint COM falhou/indisponível/incompatível e LibreOffice não foi encontrado.",
+                            nome_final_sanitizado,
+                        )
 
             total_sucesso += 1
-            fila.put(EventoSucesso(tipo="sucesso", arquivo=caminho_pptx.name))
+            fila.put(EventoSucesso(tipo="sucesso", arquivo=caminho_gerado.name))
 
         except Exception as e:
             total_erro += 1
@@ -179,7 +224,12 @@ def gerar_lote(
                 exc_info=True,
             )
             fila.put(
-                EventoErro(tipo="erro", arquivo=f"{nome_final_sanitizado}.pptx", motivo=motivo)
+                EventoErro(
+                    tipo="erro",
+                    linha=indice,
+                    arquivo=f"{nome_final_sanitizado}{ext_template}",
+                    motivo=motivo,
+                )
             )
 
         # Publica progresso após cada item (sucesso ou erro)
@@ -221,6 +271,70 @@ def _processar_slide(slide, mapeamento_valores: dict[str, str]) -> None:
             for run in paragrafo.runs:
                 for variavel, valor in mapeamento_valores.items():
                     _substituir_run(run, variavel, valor)
+
+
+def _processar_docx(doc, mapeamento_valores: dict[str, str]) -> None:
+    """
+    Processa todos os parágrafos e tabelas de um documento Word (.docx),
+    substituindo as variáveis configuradas.
+    """
+    # 1. Processa parágrafos normais
+    for p in doc.paragraphs:
+        _substituir_no_paragrafo_docx(p, mapeamento_valores)
+
+    # 2. Processa tabelas
+    for tabela in doc.tables:
+        for linha in tabela.rows:
+            for celula in linha.cells:
+                for p in celula.paragraphs:
+                    _substituir_no_paragrafo_docx(p, mapeamento_valores)
+
+
+def _substituir_no_paragrafo_docx(p, mapeamento_valores: dict[str, str]) -> None:
+    """
+    Substitui as variáveis no texto de um parágrafo do Word preservando
+    a formatação básica do primeiro run se houver alteração.
+    """
+    texto_antigo = p.text
+    texto_novo = texto_antigo
+    for var, valor in mapeamento_valores.items():
+        texto_novo = texto_novo.replace(var, valor)
+
+    if texto_novo == texto_antigo:
+        return
+
+    if p.runs:
+        primeiro_run = p.runs[0]
+        bold = primeiro_run.bold
+        italic = primeiro_run.italic
+        
+        font_name = None
+        font_size = None
+        font_color = None
+        if hasattr(primeiro_run, "font") and primeiro_run.font:
+            font_name = primeiro_run.font.name
+            font_size = primeiro_run.font.size
+            if primeiro_run.font.color:
+                try:
+                    font_color = primeiro_run.font.color.rgb
+                except Exception:
+                    pass
+
+        p.text = ""
+        novo_run = p.add_run(texto_novo)
+        novo_run.bold = bold
+        novo_run.italic = italic
+        if font_name:
+            novo_run.font.name = font_name
+        if font_size:
+            novo_run.font.size = font_size
+        if font_color:
+            try:
+                novo_run.font.color.rgb = font_color
+            except Exception:
+                pass
+    else:
+        p.text = texto_novo
 
 
 def _normalizar_runs_paragrafo(paragrafo: _Paragraph) -> None:
@@ -405,6 +519,115 @@ def com_disponivel() -> bool:
         True se pywin32 estiver instalado e o sistema for Windows.
     """
     return _COM_DISPONIVEL
+
+
+def obter_caminho_libreoffice() -> Optional[Path]:
+    """
+    Tenta localizar o executável do LibreOffice (soffice) no sistema.
+
+    Procura no PATH e em caminhos padrão de instalação do Windows.
+    """
+    # 1. Tenta encontrar no PATH
+    soffice_path = shutil.which("soffice")
+    if soffice_path:
+        return Path(soffice_path)
+
+    # 2. Caminhos padrão no Windows
+    caminhos_padrao = [
+        Path(r"C:\Program Files\LibreOffice\program\soffice.exe"),
+        Path(r"C:\Program Files (x86)\LibreOffice\program\soffice.exe"),
+    ]
+    for caminho in caminhos_padrao:
+        if caminho.is_file():
+            return caminho
+
+    return None
+
+
+def pdf_disponivel() -> bool:
+    """
+    Informa se a exportação PDF está disponível no sistema por algum meio.
+
+    Returns:
+        True se PowerPoint COM estiver disponível ou se LibreOffice estiver instalado.
+    """
+    return _COM_DISPONIVEL or (obter_caminho_libreoffice() is not None)
+
+
+def _exportar_pdf_libreoffice(
+    caminho_libreoffice: Path,
+    caminho_pptx: Path,
+    pasta_saida: Path,
+    caminho_pdf: Path,
+) -> None:
+    """
+    Exporta um arquivo .pptx para .pdf usando o LibreOffice em modo headless.
+
+    Args:
+        caminho_libreoffice: Caminho absoluto para o executável soffice.
+        caminho_pptx: Caminho do arquivo de apresentação de entrada.
+        pasta_saida: Diretório onde o PDF gerado será salvo inicialmente.
+        caminho_pdf: Caminho desejado para o PDF final (caso precise de renomeação).
+    """
+    cmd = [
+        str(caminho_libreoffice),
+        "--headless",
+        "--convert-to",
+        "pdf",
+        "--outdir",
+        str(pasta_saida.resolve()),
+        str(caminho_pptx.resolve()),
+    ]
+    result = subprocess.run(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"Erro na conversão via LibreOffice (Código {result.returncode}): {result.stderr}"
+        )
+
+    # O LibreOffice gera o PDF na pasta de saída com o mesmo nome do slide.
+    # Exemplo: pasta_saida / "Nome-do-Slide.pdf"
+    pdf_gerado = pasta_saida / f"{caminho_pptx.stem}.pdf"
+    if pdf_gerado.exists():
+        if pdf_gerado.resolve() != caminho_pdf.resolve():
+            if caminho_pdf.exists():
+                caminho_pdf.unlink()
+            pdf_gerado.rename(caminho_pdf)
+    else:
+        raise RuntimeError(
+            f"O arquivo PDF esperado não foi gerado em: {pdf_gerado}"
+        )
+
+
+def escrever_relatorio_erros(
+    pasta_saida: Path, erros: list["EventoErro"]
+) -> Optional[Path]:
+    """
+    Escreve um relatório CSV com os erros ocorridos durante um lote.
+
+    Args:
+        pasta_saida: Diretório onde o relatório será salvo.
+        erros: Lista de eventos de erro coletados durante a geração.
+
+    Returns:
+        Caminho do arquivo de relatório gerado, ou None se `erros` estiver vazio.
+    """
+    if not erros:
+        return None
+
+    pasta_saida = Path(pasta_saida)
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    caminho_relatorio = pasta_saida / f"relatorio-erros-{timestamp}.csv"
+
+    with open(caminho_relatorio, "w", newline="", encoding="utf-8-sig") as arquivo:
+        escritor = csv.writer(arquivo, delimiter=";")
+        escritor.writerow(["Linha", "Arquivo", "Motivo"])
+        for erro in erros:
+            escritor.writerow([erro["linha"], erro["arquivo"], erro["motivo"]])
+
+    log.info("Relatório de erros salvo: %s (%d erro(s))", caminho_relatorio, len(erros))
+    return caminho_relatorio
 
 
 # ---------------------------------------------------------------------------

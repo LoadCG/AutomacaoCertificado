@@ -10,6 +10,7 @@ import traceback
 from pathlib import Path
 
 from app.ui.styles import aplicar_tema
+from app.utils.fonts import carregar_fontes_privadas
 from app.utils.logger import obter_logger
 
 log = obter_logger(__name__)
@@ -51,6 +52,7 @@ def main() -> None:
 
     log.info("Iniciando Gerador de Certificados")
 
+    carregar_fontes_privadas()
     aplicar_tema()
     _garantir_icone()
 

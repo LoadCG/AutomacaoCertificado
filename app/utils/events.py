@@ -53,11 +53,13 @@ class EventoErro(TypedDict):
 
     Attributes:
         tipo: Identificador literal do evento.
+        linha: Posição da linha na planilha de origem (base 1).
         arquivo: Nome do arquivo que deveria ter sido gerado.
         motivo: Descrição legível do erro ocorrido.
     """
 
     tipo: Literal["erro"]
+    linha: int
     arquivo: str
     motivo: str
 

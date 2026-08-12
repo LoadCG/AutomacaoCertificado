@@ -4,6 +4,12 @@ Constantes visuais, tema e paleta de cores do Gerador de Certificados.
 Centraliza todas as decisões de design em um único local para facilitar
 manutenção e consistência visual entre todos os componentes.
 
+Design system:
+- Tipografia: Montserrat (ExtraBold em títulos/CTAs, pesos normais no resto).
+- Formas: cantos arredondados em inputs, botões, modais e containers.
+- Cores: off-white minimalista no modo claro; off-black com subtom marrom
+  sofisticado no modo escuro.
+
 Uso:
     from app.ui.styles import Cores, Fontes, Espacamentos, aplicar_tema
     aplicar_tema()
@@ -22,74 +28,82 @@ import customtkinter as ctk
 
 @dataclass(frozen=True)
 class Cores:
-    """Paleta de cores premium adaptativa (Light / Dark)."""
+    """Paleta de cores adaptativa (Light / Dark)."""
 
-    # Cor primária — Azul 'Electric' vibrante
-    PRIMARIA: Tuple[str, str] = ("#2563EB", "#3B82F6")
-    PRIMARIA_HOVER: Tuple[str, str] = ("#1D4ED8", "#60A5FA")
-    PRIMARIA_ESCURA: Tuple[str, str] = ("#1E40AF", "#1D4ED8")
+    # Cor primária — Âmbar quente, combina com o subtom marrom do modo escuro
+    PRIMARIA: Tuple[str, str] = ("#B45309", "#E8A33D")
+    PRIMARIA_HOVER: Tuple[str, str] = ("#92400E", "#F2B75C")
+    PRIMARIA_ESCURA: Tuple[str, str] = ("#78350F", "#B45309")
 
-    # Fundos
-    FUNDO_PRINCIPAL: Tuple[str, str] = ("#F1F5F9", "#0F172A")  # Slate 100 / Deep Slate
-    FUNDO_PAINEL: Tuple[str, str] = ("#FFFFFF", "#1E293B")     # White / Slate 800
-    FUNDO_CARD: Tuple[str, str] = ("#F8FAFC", "#334155")       # Slate 50 / Slate 700
-    FUNDO_INPUT: Tuple[str, str] = ("#FFFFFF", "#0F172A")      # White / Slate 900
+    # Fundos — Off-white minimalista / Off-black com subtom marrom sofisticado
+    FUNDO_PRINCIPAL: Tuple[str, str] = ("#FAF8F5", "#1A1512")
+    FUNDO_PAINEL: Tuple[str, str] = ("#FFFFFF", "#231D18")
+    FUNDO_CARD: Tuple[str, str] = ("#F3EFE9", "#2C241E")
+    FUNDO_INPUT: Tuple[str, str] = ("#FFFFFF", "#171310")
 
     # Bordas e Divisores
-    BORDA_SUTIL: Tuple[str, str] = ("#E2E8F0", "#334155")      # Slate 200 / Slate 700
-    BORDA_DESTAQUE: Tuple[str, str] = ("#3B82F6", "#3B82F6")
-    DIVISOR: Tuple[str, str] = ("#E2E8F0", "#1E293B")
+    BORDA_SUTIL: Tuple[str, str] = ("#E7E1D8", "#3A2F27")
+    BORDA_DESTAQUE: Tuple[str, str] = ("#B45309", "#E8A33D")
+    DIVISOR: Tuple[str, str] = ("#EDE8E0", "#2C241E")
 
     # Texto
-    TEXTO_PRINCIPAL: Tuple[str, str] = ("#1E293B", "#F8FAFC")   # Slate 800 / Slate 50
-    TEXTO_SECUNDARIO: Tuple[str, str] = ("#64748B", "#94A3B8")  # Slate 500 / Slate 400
-    TEXTO_DESABILITADO: Tuple[str, str] = ("#94A3B8", "#475569") # Slate 400 / Slate 600
-    TEXTO_LINK: Tuple[str, str] = ("#2563EB", "#60A5FA")
+    TEXTO_PRINCIPAL: Tuple[str, str] = ("#1F1B16", "#F5EFE6")
+    TEXTO_SECUNDARIO: Tuple[str, str] = ("#75695C", "#A99A8A")
+    TEXTO_DESABILITADO: Tuple[str, str] = ("#726757", "#A2937F")
+    TEXTO_LINK: Tuple[str, str] = ("#B45309", "#E8A33D")
 
-    # Status
-    SUCESSO: Tuple[str, str] = ("#059669", "#10B981")
-    ERRO: Tuple[str, str] = ("#DC2626", "#EF4444")
-    AVISO: Tuple[str, str] = ("#D97706", "#F59E0B")
-    INFO: Tuple[str, str] = ("#0284C7", "#0EA5E9")
+    # Status — AVISO é distinta de PRIMARIA para não perder o significado semântico
+    SUCESSO: Tuple[str, str] = ("#15803D", "#4ADE80")
+    ERRO: Tuple[str, str] = ("#DC2626", "#F87171")
+    AVISO: Tuple[str, str] = ("#C2410C", "#FBBF24")
+    INFO: Tuple[str, str] = ("#0369A1", "#38BDF8")
 
-    # Ações
-    BOTAO_DESABILITADO: Tuple[str, str] = ("#E2E8F0", "#1E293B")
-    BOTAO_DESABILITADO_TEXTO: Tuple[str, str] = ("#94A3B8", "#475569")
-
-    # Gradients (Simulação via HEX para botões premium)
-    GRADIENTE_INICIO: str = "#3B82F6"
-    GRADIENTE_FIM: str = "#2563EB"
+    # Texto sobre a cor primária (CTA principal)
+    TEXTO_SOBRE_PRIMARIA: Tuple[str, str] = ("#FFFFFF", "#1A1512")
 
 
 @dataclass(frozen=True)
 class Fontes:
-    """Configurações de fonte inspiradas em interfaces modernas."""
+    """
+    Famílias Montserrat pré-instanciadas por peso (ver scripts/build_fonts.py).
 
-    # Inter é a fonte padrão de interfaces modernas (Stripe, Figma, Linear)
-    FAMILIA: str = "Inter, Segoe UI, Roboto, sans-serif"
-    FAMILIA_MONO: str = "JetBrains Mono, Fira Code, Consolas, monospace"
+    O Tkinter/GDI não seleciona eixos de fontes variáveis, então cada peso
+    é uma família própria — use FAMILIA_* diretamente ao invés do parâmetro
+    `peso` de fonte_ctk() quando precisar de Medium/SemiBold/ExtraBold.
+    """
 
-    TAMANHO_TITULO: int = 24
-    TAMANHO_SUBTITULO: int = 16
-    TAMANHO_SECAO: int = 13
-    TAMANHO_NORMAL: int = 12
-    TAMANHO_PEQUENO: int = 11
-    TAMANHO_LOG: int = 11
+    FAMILIA: str = "Montserrat"
+    FAMILIA_MEDIUM: str = "Montserrat Medium"
+    FAMILIA_SEMIBOLD: str = "Montserrat SemiBold"
+    FAMILIA_BOLD: str = "Montserrat Bold"
+    FAMILIA_EXTRABOLD: str = "Montserrat ExtraBold"
+    FAMILIA_MONO: str = "Consolas, JetBrains Mono, Fira Code, monospace"
+
+    TAMANHO_CTA: int = 19
+    TAMANHO_TITULO: int = 26
+    TAMANHO_SUBTITULO: int = 19
+    TAMANHO_SECAO: int = 15
+    TAMANHO_NORMAL: int = 13
+    TAMANHO_PEQUENO: int = 12
+    TAMANHO_LOG: int = 12
 
 
 @dataclass(frozen=True)
 class Espacamentos:
     """Espaçamentos generosos para 'respiro' visual."""
 
-    PADDING_GRANDE: int = 24
-    PADDING_MEDIO: int = 16
-    PADDING_PEQUENO: int = 8
-    PADDING_MINIMO: int = 4
+    PADDING_GRANDE: int = 32
+    PADDING_MEDIO: int = 20
+    PADDING_PEQUENO: int = 10
+    PADDING_MINIMO: int = 6
 
-    LARGURA_PAINEL_ESQUERDO: int = 340
-    LARGURA_PAINEL_CENTRAL: int = 520
     ALTURA_MINIMA_JANELA: int = 800
     LARGURA_MINIMA_JANELA: int = 1280
+
+    # Raio de canto padrão do design system — usar em inputs/botões/cards
+    RAIO_PEQUENO: int = 10
+    RAIO_MEDIO: int = 14
+    RAIO_GRANDE: int = 18
 
 
 # ---------------------------------------------------------------------------
@@ -111,7 +125,6 @@ def aplicar_tema(modo: str = "dark") -> None:
     Configura o tema global do CustomTkinter.
     """
     ctk.set_appearance_mode(modo)
-    # Customizamos o tema padrão para alinhar com nossa paleta
     ctk.set_default_color_theme("blue")
 
 
@@ -122,7 +135,10 @@ def fonte_ctk(
 ) -> ctk.CTkFont:
     """
     Cria um objeto CTkFont com os parâmetros fornecidos.
-    Trata 'italic' de forma segura para evitar erros do Tkinter.
+
+    Para pesos Medium/SemiBold/ExtraBold, prefira passar `familia` com a
+    respectiva constante `fontes.FAMILIA_*` — o Tkinter só distingue
+    normal/bold nativamente, não os pesos intermediários.
     """
     slant = "italic" if peso == "italic" else "roman"
     weight = "normal" if peso == "italic" else peso
@@ -133,6 +149,21 @@ def fonte_ctk(
         weight=weight,
         slant=slant
     )
+
+
+def fonte_titulo(tamanho: int = fontes.TAMANHO_TITULO) -> ctk.CTkFont:
+    """Fonte ExtraBold para títulos, cabeçalhos e CTAs principais."""
+    return ctk.CTkFont(family=fontes.FAMILIA_EXTRABOLD, size=tamanho, weight="normal")
+
+
+def fonte_semibold(tamanho: int = fontes.TAMANHO_NORMAL) -> ctk.CTkFont:
+    """Fonte SemiBold para subtítulos e destaques secundários."""
+    return ctk.CTkFont(family=fontes.FAMILIA_SEMIBOLD, size=tamanho, weight="normal")
+
+
+def fonte_medium(tamanho: int = fontes.TAMANHO_NORMAL) -> ctk.CTkFont:
+    """Fonte Medium para texto de apoio com leve ênfase."""
+    return ctk.CTkFont(family=fontes.FAMILIA_MEDIUM, size=tamanho, weight="normal")
 
 
 def fonte_mono(tamanho: int = 11) -> ctk.CTkFont:

@@ -1,7 +1,7 @@
 """
 Módulo de carregamento e validação de planilhas de participantes.
 
-Aceita arquivos .xlsx, .xls e .csv via pandas, normaliza nomes de colunas
+Aceita arquivos .xlsx, .xls, .ods e .csv via pandas, normaliza nomes de colunas
 e levanta exceções tipadas e descritivas em caso de dados inválidos.
 
 Uso:
@@ -22,6 +22,7 @@ log = obter_logger(__name__)
 _EXTENSOES_SUPORTADAS: dict[str, str] = {
     ".xlsx": "openpyxl",
     ".xls": "xlrd",
+    ".ods": "odf",
     ".csv": "csv",  # valor especial — tratado separadamente
 }
 
@@ -63,7 +64,7 @@ def carregar_planilha(caminho: Path) -> pd.DataFrame:
     o arquivo não está vazio e retorna um DataFrame pronto para uso.
 
     Args:
-        caminho: Caminho para o arquivo .xlsx, .xls ou .csv.
+        caminho: Caminho para o arquivo .xlsx, .xls, .ods ou .csv.
 
     Returns:
         DataFrame com colunas normalizadas e tipos inferidos pelo pandas.
