@@ -9,7 +9,7 @@
 O **Gerador de Certificados** é uma solução desktop de alto desempenho projetada para automatizar a criação massiva de certificados personalizados. Desenvolvido com foco em UX/UI moderna e estabilidade técnica, o sistema permite transformar templates do PowerPoint e planilhas de dados em centenas de documentos prontos para entrega em segundos.
 
 > [!IMPORTANT]
-> **[Baixe a versão mais recente aqui](https://github.com/LoadCG/AutomacaoCertificado/releases/latest)**
+> **[⬇️ Baixe a versão mais recente (v1.1.0)](https://github.com/LoadCG/AutomacaoCertificado/releases/latest)** — não precisa instalar Python nem nada além do Windows. Veja também todos os [releases anteriores](https://github.com/LoadCG/AutomacaoCertificado/releases).
 
 
 ---
@@ -104,13 +104,26 @@ AutomacaoCertificado/
 
 ## 🚀 Guia de Instalação
 
-### 1. Clonar o Repositório
+### Opção A — Só quero usar o app (recomendado para a maioria)
+
+Não é necessário instalar Python, clonar o repositório nem nada técnico:
+
+1. Acesse a página de **[Releases](https://github.com/LoadCG/AutomacaoCertificado/releases/latest)**.
+2. Na seção **Assets** do release mais recente, baixe o arquivo `Gerador_Certificados_vX.X.X.exe`.
+3. Execute o `.exe` baixado — pronto, o app abre direto (o Windows pode exibir um aviso do SmartScreen por não reconhecer o publicador; clique em "Mais informações" → "Executar assim mesmo").
+
+> [!TIP]
+> Todas as versões publicadas — incluindo notas de lançamento e binários de releases anteriores — ficam disponíveis na aba **[Releases](https://github.com/LoadCG/AutomacaoCertificado/releases)** do repositório.
+
+### Opção B — Quero rodar/modificar o código-fonte (desenvolvedores)
+
+#### 1. Clonar o Repositório
 ```bash
 git clone https://github.com/LoadCG/AutomacaoCertificado.git
 cd AutomacaoCertificado
 ```
 
-### 2. Configuração do Ambiente Virtual (Recomendado)
+#### 2. Configuração do Ambiente Virtual (Recomendado)
 ```bash
 python -m venv venv
 # No Windows:
@@ -119,7 +132,7 @@ python -m venv venv
 source venv/bin/activate
 ```
 
-### 3. Instalação de Dependências
+#### 3. Instalação de Dependências
 ```bash
 pip install -r requirements.txt
 # Para desenvolvimento/testes:
@@ -183,8 +196,9 @@ Os logs da aplicação são salvos automaticamente no diretório do usuário:
 - Você pode visualizar eventos detalhados clicando no botão **CONSOLE** na barra de status inferior do app.
 
 ### Problemas Comuns
-- **Erro na Exportação PDF:** Certifique-se de que o Microsoft PowerPoint está instalado e não há diálogos de erro abertos no Office.
-- **Variável não detectada:** Verifique se a variável no PowerPoint está escrita exatamente como `{{VARIAVEL}}`, sem espaços internos ou quebras de linha manuais.
+- **Windows SmartScreen bloqueou o `.exe`:** É esperado para apps sem certificado de assinatura de código. Clique em "Mais informações" → "Executar assim mesmo". O executável é gerado publicamente a partir deste repositório (veja `build.spec`) — não há nada oculto.
+- **Erro na Exportação PDF:** Certifique-se de que o Microsoft PowerPoint ou o LibreOffice está instalado e não há diálogos de erro abertos no Office.
+- **Variável não detectada:** Verifique se a variável no PowerPoint/Word está escrita exatamente como `{{VARIAVEL}}`, sem espaços internos ou quebras de linha manuais.
 - **Planilha não carrega:** Certifique-se de que a planilha não está aberta em outro programa (como Excel) durante a importação.
 
 ---
