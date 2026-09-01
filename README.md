@@ -233,6 +233,7 @@ Este projeto está licenciado sob a **Licença MIT**. Veja o arquivo [LICENSE](L
 - [ ] Editor de template simplificado dentro do app.
 - [ ] Suporte a assinaturas digitais.
 - [ ] Versão nativa para macOS (sem dependência de COM).
+- [ ] Reduzir o tamanho do `.exe` (~43MB → ~15-20MB): habilitar compressão UPX (instalada mas não usada no build atual) e excluir do binário final módulos não utilizados em runtime (Pythonwin, Pillow/fallback de ícone, sqlite3).
 
 ---
 
